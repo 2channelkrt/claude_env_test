@@ -12,7 +12,7 @@ What each family member needs from you (the admin) beforehand:
 3. Allow the VPN configuration when iOS asks.
 4. Leave the toggle **on**. It stays connected in the background and only
    carries traffic to our server — normal internet use is unaffected, and
-   battery impact is negligible.
+   battery impact is minimal for most people.
 
 ## Part 2: Immich (5 min)
 
@@ -24,8 +24,13 @@ What each family member needs from you (the admin) beforehand:
    - **Select albums**: choose *Recents* (that's the whole camera roll)
    - Turn ON **Automatic backup**
    - Turn ON **Background backup**
-5. iOS will ask for photo access → choose **Allow Access to All Photos**.
-6. Keep the app open on the backup screen until the first big upload finishes
+5. Enable Background App Refresh for Immich, or background backup silently
+   won't run: iPhone **Settings → General → Background App Refresh** → make
+   sure it's on globally AND for Immich. (iOS runs background uploads when it
+   decides conditions are good — typically on Wi-Fi and charging — so they
+   are not instant.)
+6. iOS will ask for photo access → choose **Allow Access to All Photos**.
+7. Keep the app open on the backup screen until the first big upload finishes
    (first backup of a full phone can take hours — plug in, leave on Wi-Fi
    overnight; it continues in the background afterwards).
 
@@ -34,10 +39,15 @@ What each family member needs from you (the admin) beforehand:
 Cloud icon shows "Backed up" with a growing count. Take a photo, wait a few
 minutes (or open the app) — it should appear on the server.
 
+If new photos stop appearing for days: open the Immich app (foreground upload
+always works), then check Background App Refresh is still on — iOS turns it
+off for everyone when Low Power Mode is enabled.
+
 ## FAQ
 
-- **Does this use my mobile data?** By default backup runs on Wi-Fi and
-  cellular. To restrict: Immich → Backup settings → turn off cellular upload.
+- **Does this use my mobile data?** No — by default Immich only uploads on
+  Wi-Fi. If you WANT backup over cellular too, turn it on in Immich's backup
+  settings (watch your data plan).
 - **Can I delete photos from my phone after backup?** Yes — once backed up,
   they stay on the server. The Immich app can even do this for you
   (Backup → free up space), but double-check the photo is on the server first.
