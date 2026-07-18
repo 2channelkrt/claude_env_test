@@ -61,4 +61,30 @@ if PATH="$MOCKS:$PATH" BACKUP_DRIVE="$SANDBOX/nonexistent" \
 fi
 grep -q "ERROR:" "$SANDBOX/backup.log" || fail "no ERROR log line for missing drive"
 
+# --- Test 3: retention prunes old dumps, keeping the KEEP_DUMPS newest ---
+rm -f "$SANDBOX/backup.log"
+rm -f "$DRIVE"/immich-db-*.sql.gz
+
+touch -t 202601010000 "$DRIVE/immich-db-2026-01-01.sql.gz"
+touch -t 202601020000 "$DRIVE/immich-db-2026-01-02.sql.gz"
+touch -t 202601030000 "$DRIVE/immich-db-2026-01-03.sql.gz"
+
+PATH="$MOCKS:$PATH" BACKUP_DRIVE="$DRIVE" UPLOAD_LOCATION="$LIB" \
+  LOG_FILE="$SANDBOX/backup.log" KEEP_DUMPS=2 \
+  bash "$REPO_ROOT/scripts/backup.sh" || fail "backup.sh exited nonzero during retention test"
+
+today_dump="$DRIVE/immich-db-$(date +%F).sql.gz"
+[ -f "$today_dump" ] || fail "today's dump was not written during retention test"
+
+remaining_count=$(ls -1 "$DRIVE"/immich-db-*.sql.gz | wc -l)
+[ "$remaining_count" -eq 2 ] || fail "expected 2 dumps after pruning, found $remaining_count"
+
+# KEEP_DUMPS=2 keeps the 2 newest overall: today's fresh dump and the newest
+# of the pre-seeded old dumps (2026-01-03); the older two must be pruned.
+[ -f "$DRIVE/immich-db-2026-01-03.sql.gz" ] || fail "newest old dump was pruned but should have survived"
+[ -f "$DRIVE/immich-db-2026-01-01.sql.gz" ] && fail "oldest dump should have been pruned"
+[ -f "$DRIVE/immich-db-2026-01-02.sql.gz" ] && fail "second-oldest dump should have been pruned"
+
+grep -q "pruned old dump" "$SANDBOX/backup.log" || fail "no pruning log line during retention test"
+
 echo "ALL BACKUP TESTS PASSED"

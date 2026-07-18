@@ -17,14 +17,19 @@ mountpoint -q "$BACKUP_DRIVE" || [ -e "$BACKUP_DRIVE/.backup-drive" ] \
 
 log "starting database dump"
 dump_file="$BACKUP_DRIVE/immich-db-$(date +%F).sql.gz"
-docker exec -t immich_postgres pg_dumpall --clean --if-exists --username=postgres \
+docker exec immich_postgres pg_dumpall --clean --if-exists --username=postgres \
   | gzip > "$dump_file" || fail "database dump failed"
 log "database dump written to $dump_file"
 
 # Prune old dumps, keep the newest $KEEP_DUMPS
-find "$BACKUP_DRIVE" -maxdepth 1 -name 'immich-db-*.sql.gz' -print0 \
-  | xargs -0 ls -1t 2>/dev/null | tail -n +"$((KEEP_DUMPS + 1))" \
-  | while IFS= read -r old; do rm -- "$old"; log "pruned old dump $old"; done
+prune_old_dumps() {
+  local old
+  while IFS= read -r old; do
+    rm -- "$old" || return 1
+    log "pruned old dump $old"
+  done < <(ls -1t "$BACKUP_DRIVE"/immich-db-*.sql.gz 2>/dev/null | tail -n +"$((KEEP_DUMPS + 1))")
+}
+prune_old_dumps || fail "pruning old dumps failed"
 
 log "starting library rsync"
 rsync -a --delete "$UPLOAD_LOCATION/" "$BACKUP_DRIVE/library/" \
