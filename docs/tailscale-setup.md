@@ -6,8 +6,7 @@ is exposed to the public internet.
 
 ## 1. Create a tailnet
 
-Sign up at https://login.tailscale.com (free "Personal" plan covers 3 users;
-the "Family" plan covers 6 — check current plans). Use your own account as
+Sign up at https://login.tailscale.com (see https://tailscale.com/pricing for current free-tier seat limits; a 4-8 person family may need a paid tier). Use your own account as
 the tailnet owner.
 
 ## 2. Install on the server
@@ -26,7 +25,7 @@ and **HTTPS certificates**.
 This proxies `https://photos.<tailnet>.ts.net` → local port 2283 with an
 automatic TLS certificate. Verify from any tailnet device:
 
-    https://photos.<your-tailnet>.ts.net
+    https://photos.<tailnet>.ts.net
 
 This URL is what family members enter in the Immich app.
 
@@ -43,6 +42,6 @@ They accept on their iPhone during onboarding (`docs/family-onboarding.md`).
 ## Notes
 
 - Backup traffic on home Wi-Fi still goes through the Tailscale URL, but
-  Tailscale routes device-to-device on the LAN automatically — no slow path.
+  Tailscale usually establishes a direct device-to-device path on the LAN, so local backups stay fast.
 - If a phone can't reach the server: check the Tailscale app is connected
   (toggle at top), then check `tailscale status` on the server.
