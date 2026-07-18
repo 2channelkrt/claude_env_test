@@ -24,9 +24,13 @@ read -rp "New version tag to install (e.g. v2.1.0), empty to abort: " new_versio
 read -rp "Have you read the release notes for $new_version? [y/N] " confirmed
 [ "$confirmed" = "y" ] || { echo "Aborted: read the release notes, then re-run."; exit 1; }
 
+echo "Pulling $new_version before touching .env (a bad tag must not strand the pin)..."
+IMMICH_VERSION="$new_version" docker compose -f "$IMMICH_DIR/docker-compose.yml" \
+  --env-file "$ENV_FILE" pull \
+  || { echo "ERROR: pull failed for $new_version; .env left unchanged, still pinned at $current"; exit 1; }
+
 sed -i "s|^IMMICH_VERSION=.*|IMMICH_VERSION=$new_version|" "$ENV_FILE"
 echo "Pinned $new_version in $ENV_FILE"
 
-docker compose -f "$IMMICH_DIR/docker-compose.yml" --env-file "$ENV_FILE" pull
 docker compose -f "$IMMICH_DIR/docker-compose.yml" --env-file "$ENV_FILE" up -d
 echo "Update to $new_version complete. Verify: open the web UI and check Server Status."

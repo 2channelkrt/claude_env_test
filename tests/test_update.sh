@@ -14,6 +14,13 @@ printf 'IMMICH_VERSION=v2.0.1\nDB_PASSWORD=x\n' > "$IMMICH_DIR/.env"
 cat > "$MOCKS/docker" <<EOF
 #!/usr/bin/env bash
 echo "\$@" >> "$SANDBOX/docker.calls"
+if [ -f "$SANDBOX/fail_pull" ]; then
+  for arg in "\$@"; do
+    if [ "\$arg" = "pull" ]; then
+      exit 1
+    fi
+  done
+fi
 EOF
 chmod +x "$MOCKS/docker"
 
@@ -61,5 +68,16 @@ echo "$output" | grep -q "no IMMICH_VERSION line" || fail "missing IMMICH_VERSIO
 
 # restore a good .env in case later assertions are added after this point
 printf 'IMMICH_VERSION=v2.0.1\nDB_PASSWORD=x\n' > "$IMMICH_DIR/.env"
+
+# --- Test 6: pull failure leaves .env unchanged and never reaches up -d ---
+rm -f "$SANDBOX/docker.calls"
+touch "$SANDBOX/fail_pull"
+if printf 'v2.1.0\ny\n' | PATH="$MOCKS:$PATH" IMMICH_DIR="$IMMICH_DIR" \
+  bash "$REPO_ROOT/scripts/update.sh" 2>/dev/null; then
+  fail "update.sh succeeded despite a failed docker compose pull"
+fi
+grep -q '^IMMICH_VERSION=v2.0.1$' "$IMMICH_DIR/.env" || fail ".env changed after a failed pull"
+grep -q "up -d" "$SANDBOX/docker.calls" && fail "up -d was called despite a failed pull"
+rm -f "$SANDBOX/fail_pull"
 
 echo "ALL UPDATE TESTS PASSED"

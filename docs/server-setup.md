@@ -39,8 +39,7 @@ If /data is a separate disk, mount it via /etc/fstab first.
     docker compose ps          # all services healthy/running (first start takes several minutes: the ML container downloads its models)
 
 Open http://<server-ip>:2283 and create the FIRST account — this becomes the
-admin. Create one account per family member (Administration → Users), or let
-them register if you prefer.
+admin. Create one account per family member (Administration → Users).
 
 ## 6. Backup drive + cron
 
@@ -65,6 +64,12 @@ then `cat /var/log/immich-backup.log`.
 
 Now do the restore **verification drill** in `scripts/restore.md` — once, now,
 while nothing is on fire.
+
+Backups fail silently if nobody looks: once a month, check that the last line
+of `/var/log/immich-backup.log` says "backup completed OK". Off-site copies
+(e.g. a Backblaze B2 sync of `/mnt/backup`) are a good later upgrade once this
+is routine; note that the backup drive itself is unencrypted — anyone holding
+it can read the photos.
 
 ## 7. Remote access
 

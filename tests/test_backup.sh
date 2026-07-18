@@ -11,6 +11,9 @@ LIB="$SANDBOX/library"
 mkdir -p "$MOCKS" "$DRIVE" "$LIB"
 echo "fake-photo" > "$LIB/img1.jpg"
 
+# Fake old-server .env, copied to the backup drive as immich.env each run
+printf 'IMMICH_VERSION=v2.0.1\nDB_PASSWORD=supersecret\n' > "$SANDBOX/immich.env"
+
 # Mock: mountpoint succeeds only for $DRIVE
 cat > "$MOCKS/mountpoint" <<EOF
 #!/usr/bin/env bash
@@ -38,6 +41,7 @@ run_backup() {
   BACKUP_DRIVE="$DRIVE" \
   UPLOAD_LOCATION="$LIB" \
   LOG_FILE="$SANDBOX/backup.log" \
+  IMMICH_ENV_FILE="$SANDBOX/immich.env" \
   bash "$REPO_ROOT/scripts/backup.sh"
 }
 
@@ -51,6 +55,10 @@ gzip -t "$DRIVE"/immich-db-*.sql.gz || fail "DB dump is not valid gzip"
 grep -q "pg_dumpall" "$SANDBOX/docker.calls" || fail "pg_dumpall not invoked"
 grep -q -- "--delete" "$SANDBOX/rsync.calls" || fail "rsync missing --delete"
 grep -q "backup completed OK" "$SANDBOX/backup.log" || fail "no success log line"
+[ -f "$DRIVE/immich.env" ] || fail "env file was not copied to the backup drive"
+env_perm="$(stat -c '%a' "$DRIVE/immich.env")"
+[ "$env_perm" = "600" ] || fail "env file on backup drive has wrong permissions: $env_perm (want 600)"
+grep -q "env file copied" "$SANDBOX/backup.log" || fail "no env-file-copied log line"
 
 # --- Test 2: missing drive fails loudly ---
 rm -f "$SANDBOX/backup.log"
@@ -86,5 +94,22 @@ remaining_count=$(ls -1 "$DRIVE"/immich-db-*.sql.gz | wc -l)
 [ -f "$DRIVE/immich-db-2026-01-02.sql.gz" ] && fail "second-oldest dump should have been pruned"
 
 grep -q "pruned old dump" "$SANDBOX/backup.log" || fail "no pruning log line during retention test"
+
+# --- Test 4: refuses to rsync --delete when the source library is empty/missing ---
+rm -f "$SANDBOX/backup.log"
+EMPTY_LIB="$SANDBOX/empty_lib"
+mkdir -p "$EMPTY_LIB"
+mkdir -p "$DRIVE/library"
+echo "pre-existing-backup-photo" > "$DRIVE/library/existing.jpg"
+
+if PATH="$MOCKS:$PATH" BACKUP_DRIVE="$DRIVE" UPLOAD_LOCATION="$EMPTY_LIB" \
+   LOG_FILE="$SANDBOX/backup.log" IMMICH_ENV_FILE="$SANDBOX/immich.env" \
+   bash "$REPO_ROOT/scripts/backup.sh" 2>/dev/null; then
+  fail "backup.sh succeeded with an empty/missing UPLOAD_LOCATION"
+fi
+grep -q "ERROR:.*refusing" "$SANDBOX/backup.log" \
+  || fail "no ERROR line about refusing to mirror an empty source"
+[ -f "$DRIVE/library/existing.jpg" ] \
+  || fail "pre-existing backup-mirror file was wiped despite the empty-source guard"
 
 echo "ALL BACKUP TESTS PASSED"

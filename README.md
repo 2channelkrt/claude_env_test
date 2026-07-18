@@ -32,4 +32,12 @@ is exposed to the public internet.
 2. `docs/tailscale-setup.md`
 3. `docs/family-onboarding.md` for each person
 
+## Keeping backups honest
+
+Backups fail silently if nobody looks: once a month, check that the last line
+of `/var/log/immich-backup.log` says "backup completed OK". Off-site copies
+(e.g. a Backblaze B2 sync of `/mnt/backup`) are a good later upgrade once this
+is routine; note that the backup drive itself is unencrypted — anyone holding
+it can read the photos.
+
 Design spec: `docs/superpowers/specs/2026-07-18-family-photo-backup-design.md`
