@@ -15,7 +15,7 @@ with Docker installed (see `docs/server-setup.md` for base setup).
    "First start". Copy `immich/example.env` to `immich/.env` and set the SAME
    `DB_PASSWORD` as the old server if you know it; otherwise set a new one
    (the dump recreates roles, so a new password also works — it is overwritten
-   by the dump's role definitions).
+   by the dump's role definitions). Also set IMMICH_VERSION in .env to the same version the old server was running when the backup was taken — restoring an old dump under a much newer version forces a large migration jump on first start.
 
 2. **Restore the photo library** (do this before starting Immich):
 
@@ -32,7 +32,7 @@ with Docker installed (see `docs/server-setup.md` for base setup).
        gunzip -c /mnt/backup/immich-db-2026-07-18.sql.gz \
          | docker exec -i immich_postgres psql --username=postgres
 
-   Errors about "role postgres already exists" are harmless.
+   You will see several errors about roles or databases already existing, or the current user not being droppable — these are expected from a pg_dumpall --clean restore and harmless; psql continues and the data still loads.
 
 5. **Start the rest of the stack:**
 
@@ -59,4 +59,4 @@ Prove the dump restores cleanly without touching production:
     docker exec restore_test psql -U postgres -d immich -c 'SELECT count(*) FROM asset;'
     docker rm -f restore_test
 
-A nonzero asset count = your backup restores. Do this drill yearly.
+A nonzero asset count = your backup restores. Run this drill once now, then yearly thereafter.
