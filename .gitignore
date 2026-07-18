@@ -1,2 +1,3 @@
 immich/.env
 *.log
+.superpowers/
