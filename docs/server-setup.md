@@ -7,7 +7,12 @@ room for 2 TB of photos.
 ## 1. Install Docker
 
     curl -fsSL https://get.docker.com | sudo sh
+
+The convenience script is fine for a home server; for the apt-repository method see https://docs.docker.com/engine/install/.
+
     sudo usermod -aG docker $USER   # log out and back in
+
+Log out and back in now (or run newgrp docker) — otherwise docker commands in step 5 fail with "permission denied".
 
 ## 2. Get this repo onto the server
 
@@ -31,7 +36,7 @@ If /data is a separate disk, mount it via /etc/fstab first.
 ## 5. First start
 
     docker compose up -d
-    docker compose ps          # all services healthy/running after ~1 min
+    docker compose ps          # all services healthy/running (first start takes several minutes: the ML container downloads its models)
 
 Open http://<server-ip>:2283 and create the FIRST account — this becomes the
 admin. Create one account per family member (Administration → Users), or let
@@ -41,9 +46,14 @@ them register if you prefer.
 
 Plug in the external USB drive (≥4 TB), then:
 
-    lsblk                                   # find it, e.g. /dev/sda1
+    lsblk -f                                # find it (e.g. /dev/sda1) and note its filesystem
+    # If the drive is new or NTFS/exFAT-formatted, format it for Linux first
+    # (THIS ERASES THE DRIVE — double-check the device name):
+    sudo mkfs.ext4 /dev/sda1
+    # Mount by UUID, not device name — USB device names change between reboots:
+    sudo blkid /dev/sda1                    # copy the UUID="..." value
     sudo mkdir -p /mnt/backup
-    echo '/dev/sda1 /mnt/backup ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
+    echo 'UUID=<paste-uuid-here> /mnt/backup ext4 defaults,nofail 0 2' | sudo tee -a /etc/fstab
     sudo mount -a
     sudo touch /mnt/backup/.backup-drive    # marker checked by backup.sh
     sudo crontab -e
