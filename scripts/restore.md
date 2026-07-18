@@ -13,8 +13,9 @@ with Docker installed (see `docs/server-setup.md` for base setup).
 
 ## Steps
 
-1. **Base setup** — follow `docs/server-setup.md` up to (but NOT including)
-   "First start". Copy `immich/example.env` to `immich/.env` for now — you'll
+1. **Base setup** — Work from the repo root: `cd /opt/family-photos`. Follow
+   `docs/server-setup.md` up to (but NOT including) "First start". Copy
+   `immich/example.env` to `immich/.env` for now — you'll
    overwrite it with the old server's real settings in the next step, instead
    of reconstructing `DB_PASSWORD` and `IMMICH_VERSION` by hand. (Restoring an
    old dump under a much newer `IMMICH_VERSION` forces a large migration jump
@@ -29,7 +30,7 @@ with Docker installed (see `docs/server-setup.md` for base setup).
        sudo mkdir -p /mnt/backup
        sudo mount -o ro UUID=<paste-uuid-here> /mnt/backup
        ls /mnt/backup        # you should see immich-db-*.sql.gz and library/
-       cp /mnt/backup/immich.env immich/.env
+       cp /mnt/backup/immich.env /opt/family-photos/immich/.env
 
    `immich.env` on the drive has the same `DB_PASSWORD` and `IMMICH_VERSION`
    the old server was running. If it isn't there (older backup, from before
@@ -50,7 +51,7 @@ with Docker installed (see `docs/server-setup.md` for base setup).
 
 5. **Load the newest dump:**
 
-       gunzip -c /mnt/backup/immich-db-2026-07-18.sql.gz \
+       gunzip -c "$(ls -t /mnt/backup/immich-db-*.sql.gz | head -1)" \
          | docker exec -i immich_postgres psql --username=postgres
 
    You will see several errors about roles or databases already existing, or the current user not being droppable — these are expected from a pg_dumpall --clean restore and harmless; psql continues and the data still loads.
@@ -62,10 +63,15 @@ with Docker installed (see `docs/server-setup.md` for base setup).
 7. **Verify:** open `http://<server>:2283` (or the Tailscale URL), log in with
    a family account, confirm photos, albums, and people are present.
 
-8. **Re-arm backups:** re-plug the backup drive and confirm the cron entry
-   (see `docs/server-setup.md`) is active:
+8. **Re-arm nightly backups** — on a rebuilt machine they are NOT configured yet:
 
-       sudo crontab -l | grep backup.sh
+       sudo umount /mnt/backup     # it was mounted read-only for the restore
+
+   Now do server-setup §6 (backup drive + cron) — but SKIP the mkfs.ext4
+   formatting lines: this drive already holds your backup. The fstab entry,
+   the .backup-drive marker, and the cron entry all need to be recreated.
+   Finish by running one manual backup and checking the log ends with
+   "backup completed OK".
 
 ## Verification drill (do once after initial setup)
 

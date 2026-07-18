@@ -69,7 +69,8 @@ Backups fail silently if nobody looks: once a month, check that the last line
 of `/var/log/immich-backup.log` says "backup completed OK". Off-site copies
 (e.g. a Backblaze B2 sync of `/mnt/backup`) are a good later upgrade once this
 is routine; note that the backup drive itself is unencrypted — anyone holding
-it can read the photos.
+it can read the photos, and since the drive also carries `immich.env`, they
+can read the server's database password too.
 
 ## 7. Remote access
 

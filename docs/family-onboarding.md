@@ -29,7 +29,10 @@ What each family member needs from you (the admin) beforehand:
    sure it's on globally AND for Immich. (iOS runs background uploads when it
    decides conditions are good — typically on Wi-Fi and charging — so they
    are not instant.)
-6. iOS will ask for photo access → choose **Allow Access to All Photos**.
+6. **Allow Access to All Photos**: iOS shows this prompt during step 4, right
+   when you turn on Automatic backup — choose **Allow Access to All Photos**
+   there (not a separate later step; if you don't see it, you already
+   answered it during step 4).
 7. Keep the app open on the backup screen until the first big upload finishes
    (first backup of a full phone can take hours — plug in, leave on Wi-Fi
    overnight; it continues in the background afterwards).
