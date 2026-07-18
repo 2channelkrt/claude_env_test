@@ -42,4 +42,24 @@ if printf '\n' | PATH="$MOCKS:$PATH" IMMICH_DIR="$IMMICH_DIR" \
   fail "update.sh proceeded with empty version"
 fi
 
+# --- Test 4: version with sed metacharacter is rejected ---
+sed -i 's/^IMMICH_VERSION=.*/IMMICH_VERSION=v2.0.1/' "$IMMICH_DIR/.env"
+rm -f "$SANDBOX/docker.calls"
+if printf 'v2.1&0\ny\n' | PATH="$MOCKS:$PATH" IMMICH_DIR="$IMMICH_DIR" \
+  bash "$REPO_ROOT/scripts/update.sh" 2>/dev/null; then
+  fail "update.sh proceeded with an invalid version tag"
+fi
+grep -q '^IMMICH_VERSION=v2.0.1$' "$IMMICH_DIR/.env" || fail ".env changed after invalid version"
+[ ! -f "$SANDBOX/docker.calls" ] || fail "docker invoked after invalid version"
+
+# --- Test 5: missing IMMICH_VERSION line in .env errors clearly ---
+printf 'DB_PASSWORD=x\n' > "$IMMICH_DIR/.env"
+rm -f "$SANDBOX/docker.calls"
+output="$(printf 'v2.1.0\ny\n' | PATH="$MOCKS:$PATH" IMMICH_DIR="$IMMICH_DIR" \
+  bash "$REPO_ROOT/scripts/update.sh" 2>&1)" && fail "update.sh proceeded without IMMICH_VERSION line"
+echo "$output" | grep -q "no IMMICH_VERSION line" || fail "missing IMMICH_VERSION line error message not shown"
+
+# restore a good .env in case later assertions are added after this point
+printf 'IMMICH_VERSION=v2.0.1\nDB_PASSWORD=x\n' > "$IMMICH_DIR/.env"
+
 echo "ALL UPDATE TESTS PASSED"
