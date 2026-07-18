@@ -79,7 +79,7 @@ Prove the dump restores cleanly without touching production:
 
     gunzip -c /mnt/backup/immich-db-<date>.sql.gz | head -50   # looks like SQL?
     docker run --rm -d --name restore_test \
-      -e POSTGRES_PASSWORD=test ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0
+      -e POSTGRES_PASSWORD=test ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
     until docker exec restore_test pg_isready -U postgres >/dev/null 2>&1; do sleep 2; done
     gunzip -c /mnt/backup/immich-db-<date>.sql.gz \
       | docker exec -i restore_test psql --username=postgres
