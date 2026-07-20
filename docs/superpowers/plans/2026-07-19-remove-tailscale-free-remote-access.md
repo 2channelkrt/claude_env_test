@@ -456,6 +456,7 @@ git commit -m "feat: add fail2ban config and free remote-access guide; drop Tail
 **Files:**
 - Modify: `docs/family-onboarding.md` (remove Tailscale part; new URL; TOTP step)
 - Modify: `README.md` (retitle, layout table, order-of-operations, threat-model note)
+- Modify: `docs/server-setup.md` (redirect its two Tailscale references at §7 and the troubleshooting list)
 
 **Interfaces:**
 - Consumes: the DuckDNS hostname convention and TOTP requirement from Task 3.
@@ -604,15 +605,33 @@ Update the design-spec pointer line at the bottom to reference the new spec:
 Design spec: `docs/superpowers/specs/2026-07-19-remove-tailscale-free-remote-access-design.md`
 ```
 
-- [ ] **Step 3: Verify no VPN/Tailscale references remain**
+- [ ] **Step 3: Redirect the Tailscale references in `docs/server-setup.md`**
 
-Run: `grep -rin "tailscale\|\bVPN\b" --include='*.md' README.md docs/ || echo NO_REFS`
-Expected: `NO_REFS` (the only acceptable remaining mentions are historical ones inside `docs/superpowers/specs/` and `docs/superpowers/plans/`, which are design records — if grep shows ONLY those spec/plan paths, that's fine; README.md and the user-facing docs must be clean).
+`docs/server-setup.md` has two Tailscale mentions. Apply both edits:
 
-- [ ] **Step 4: Commit**
+Replace §7 (currently `## 7. Remote access` followed by `Follow \`docs/tailscale-setup.md\`.`) body line:
+
+```markdown
+Follow `docs/remote-access-setup.md`.
+```
+
+Replace the troubleshooting bullet `5. Tailscale up? \`tailscale status\` on the server.` with:
+
+```markdown
+5. Reachable from outside? Load `https://<name>.duckdns.org` from a phone on
+   cellular. If not, check port-forwarding and the DuckDNS timer
+   (`systemctl status duckdns.timer`).
+```
+
+- [ ] **Step 4: Verify no VPN/Tailscale references remain**
+
+Run: `grep -rin "tailscale\|\bVPN\b" README.md docs/family-onboarding.md docs/server-setup.md docs/remote-access-setup.md || echo NO_REFS`
+Expected: `NO_REFS`. (Historical mentions inside `docs/superpowers/specs/` and `docs/superpowers/plans/` are design records and are intentionally NOT checked here.)
+
+- [ ] **Step 5: Commit**
 
 ```bash
-git add README.md docs/family-onboarding.md
+git add README.md docs/family-onboarding.md docs/server-setup.md
 git commit -m "docs: rewrite onboarding and README for VPN-free public access"
 ```
 
