@@ -28,7 +28,7 @@ TOTP two-factor, fail2ban) since the server is now internet-facing.
 | `scripts/restore.md` | Disaster recovery, with a yearly verification drill |
 | `docs/server-setup.md` | Blank Linux box → running server |
 | `docs/remote-access-setup.md` | Free public HTTPS access + login hardening |
-| `docs/family-onboarding.md` | 10-minute per-iPhone setup |
+| `docs/family-onboarding.md` | 5-minute per-iPhone setup |
 | `tests/` | Test harnesses for the scripts (mocked docker/rsync) |
 
 ## Order of operations
