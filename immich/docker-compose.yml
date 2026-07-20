@@ -28,7 +28,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
-      - caddy-logs:/var/log/caddy
+      - /var/log/immich-caddy:/var/log/caddy
     depends_on:
       - immich-server
     restart: unless-stopped
@@ -70,4 +70,3 @@ volumes:
   model-cache:
   caddy-data:
   caddy-config:
-  caddy-logs:

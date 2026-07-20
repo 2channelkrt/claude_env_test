@@ -41,8 +41,8 @@ switch to a tunnel-based approach.
 
        [Service]
        Type=oneshot
-       EnvironmentFile=/opt/immich/immich/.env
-       ExecStart=/opt/immich/immich/../scripts/duckdns-update.sh
+       EnvironmentFile=/opt/family-photos/immich/.env
+       ExecStart=/opt/family-photos/scripts/duckdns-update.sh
        # (point ExecStart at the real path of scripts/duckdns-update.sh)
 
    Create `/etc/systemd/system/duckdns.timer`:
@@ -91,17 +91,8 @@ family members enter in the Immich app.
 4. **fail2ban** — bans IPs that hammer the login. Two required steps:
    expose Caddy's access log on the host, then install the shipped jail.
 
-   a. Point Caddy's log at a host directory. In `immich/docker-compose.yml`,
-      **replace** the caddy service's existing log volume line —
-
-          - caddy-logs:/var/log/caddy
-
-      — with a host bind mount:
-
-          - /var/log/immich-caddy:/var/log/caddy
-
-      Then remove the now-unused `caddy-logs` entry from the bottom
-      `volumes:` list, create the directory, and recreate Caddy:
+   a. The stack already bind-mounts `/var/log/immich-caddy` on the host to
+      Caddy's log dir. Create it and (re)start Caddy:
 
           sudo mkdir -p /var/log/immich-caddy
           docker compose up -d caddy
@@ -115,13 +106,19 @@ family members enter in the Immich app.
           sudo systemctl restart fail2ban
           sudo fail2ban-client status immich-caddy
 
+      The jail bans on Docker's `DOCKER-USER` chain (see `jail.d/immich.conf`),
+      which requires the iptables backend — the default on Docker installs.
+
 ## 5. Verify the hardening works
 
 - [ ] Cert valid when browsing `https://myfamily.duckdns.org` from cellular.
 - [ ] Immich's raw port is NOT reachable: `curl -sS http://<server-LAN-IP>:2283`
       from another LAN host should refuse/timeout (port no longer published).
-- [ ] Fire 6 bad logins, then `sudo fail2ban-client status immich-caddy` shows
-      your test IP banned.
+- [ ] Fire 6 bad logins from a test device, then prove the ban BLOCKS traffic
+      (not just that it's listed): from that same IP, `curl -m5 https://<name>.duckdns.org`
+      should now time out or be refused. Because Caddy runs in a container with
+      published ports, the jail bans on the `DOCKER-USER` chain — verify the
+      block, not just `sudo fail2ban-client status immich-caddy`.
 
 ## Notes
 
