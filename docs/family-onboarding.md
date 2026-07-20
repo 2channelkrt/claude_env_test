@@ -1,39 +1,43 @@
-# iPhone Setup — 10 Minutes Per Person
+# iPhone Setup — 5 Minutes Per Person
 
-What each family member needs from you (the admin) beforehand:
-- A Tailscale invite email (sent from the Tailscale admin console)
+No VPN app anymore — just Immich. What each family member needs from you
+(the admin) beforehand:
 - Their Immich login (email + starting password you created)
-- The server URL: `https://photos.<tailnet>.ts.net`
+- The server URL: `https://<name>.duckdns.org`
 
-## Part 1: Tailscale (3 min)
-
-1. App Store → install **Tailscale**.
-2. Open it → **Log in** → use the SAME account/email the invite went to.
-3. Allow the VPN configuration when iOS asks.
-4. Leave the toggle **on**. It stays connected in the background and only
-   carries traffic to our server — normal internet use is unaffected, and
-   battery impact is minimal for most people.
-
-## Part 2: Immich (5 min)
+## Install & sign in (2 min)
 
 1. App Store → install **Immich**.
-2. Open it → Server Endpoint URL: `https://photos.<tailnet>.ts.net` → Next.
-3. Log in with your email + password (change the password in
-   Settings → Account after first login).
-4. Enable backup: tap the **cloud icon** (top right) →
+2. Open it → Server Endpoint URL: `https://<name>.duckdns.org` → Next.
+3. Log in with your email + starting password.
+4. Change the password in **Settings → Account** after first login.
+
+## Turn on two-factor (required) (2 min)
+
+1. Install an authenticator app (Google Authenticator, or the built-in iOS
+   Passwords app can store codes).
+2. In Immich: **Settings → Account → Two-factor authentication** → scan the
+   QR code with the authenticator → enter the 6-digit code to confirm.
+3. Save the recovery codes somewhere safe. From now on login asks for a code.
+
+   (If you genuinely can't manage an authenticator, tell the admin — 2FA can
+   be left off for your account, but your password alone then guards your
+   photos on a public server. Not recommended.)
+
+## Turn on backup (3 min)
+
+1. Enable backup: tap the **cloud icon** (top right) →
    - **Select albums**: choose *Recents* (that's the whole camera roll)
    - Turn ON **Automatic backup**
    - Turn ON **Background backup**
-5. Enable Background App Refresh for Immich, or background backup silently
+2. Enable Background App Refresh for Immich, or background backup silently
    won't run: iPhone **Settings → General → Background App Refresh** → make
    sure it's on globally AND for Immich. (iOS runs background uploads when it
    decides conditions are good — typically on Wi-Fi and charging — so they
    are not instant.)
-6. **Allow Access to All Photos**: iOS shows this prompt during step 4, right
-   when you turn on Automatic backup — choose **Allow Access to All Photos**
-   there (not a separate later step; if you don't see it, you already
-   answered it during step 4).
-7. Keep the app open on the backup screen until the first big upload finishes
+3. **Allow Access to All Photos**: iOS shows this prompt when you turn on
+   Automatic backup — choose **Allow Access to All Photos**.
+4. Keep the app open on the backup screen until the first big upload finishes
    (first backup of a full phone can take hours — plug in, leave on Wi-Fi
    overnight; it continues in the background afterwards).
 
@@ -56,5 +60,6 @@ off for everyone when Low Power Mode is enabled.
   (Backup → free up space), but double-check the photo is on the server first.
 - **Is someone else seeing my photos?** Each person has their own library.
   Sharing happens only through albums you explicitly share.
-- **The app says it can't reach the server.** Open Tailscale, make sure the
-  toggle is on and it says Connected.
+- **The app says it can't reach the server.** Check `https://<name>.duckdns.org`
+  loads in Safari. If not, the server or its internet connection may be down —
+  tell the admin.

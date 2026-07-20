@@ -74,7 +74,7 @@ can read the server's database password too.
 
 ## 7. Remote access
 
-Follow `docs/tailscale-setup.md`.
+Follow `docs/remote-access-setup.md`.
 
 ## Troubleshooting: "the server seems down"
 
@@ -82,6 +82,8 @@ Follow `docs/tailscale-setup.md`.
 2. Containers running? `cd /opt/family-photos/immich && docker compose ps`
 3. Anything crash-looping? `docker compose logs --tail 50 immich-server`
 4. Disk full? `df -h /data` — Immich stops accepting uploads on a full disk.
-5. Tailscale up? `tailscale status` on the server.
+5. Reachable from outside? Load `https://<name>.duckdns.org` from a phone on
+   cellular. If not, check port-forwarding and the DuckDNS timer
+   (`systemctl status duckdns.timer`).
 6. Nuclear option (safe — photos are on the host disk):
    `docker compose down && docker compose up -d`
