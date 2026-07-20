@@ -1,0 +1,26 @@
+# Caddy terminates HTTPS for the DuckDNS hostname and proxies to Immich.
+# {$PUBLIC_HOSTNAME} is read from the environment (set in .env).
+{$PUBLIC_HOSTNAME} {
+	encode zstd gzip
+
+	# Reverse-proxy everything to Immich on the internal compose network.
+	reverse_proxy immich-server:2283
+
+	# Security headers.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# JSON access log to a shared volume so fail2ban can watch it.
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+		format json
+	}
+}

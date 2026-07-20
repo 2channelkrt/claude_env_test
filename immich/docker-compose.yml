@@ -9,14 +9,29 @@ services:
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
-    ports:
-      - '2283:2283'
     depends_on:
       - redis
       - database
     restart: unless-stopped
     healthcheck:
       disable: false
+
+  caddy:
+    container_name: immich_caddy
+    image: docker.io/library/caddy:2-alpine
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      PUBLIC_HOSTNAME: ${PUBLIC_HOSTNAME}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+      - /var/log/immich-caddy:/var/log/caddy
+    depends_on:
+      - immich-server
+    restart: unless-stopped
 
   immich-machine-learning:
     container_name: immich_machine_learning
@@ -53,3 +68,5 @@ services:
 
 volumes:
   model-cache:
+  caddy-data:
+  caddy-config:
