@@ -88,20 +88,32 @@ family members enter in the Immich app.
    account (Administration → Users) and shares a strong starting password.
 3. **Require TOTP two-factor** — each member enables it in Account Settings
    during onboarding (see `docs/family-onboarding.md`).
-4. **fail2ban** — bans IPs that hammer the login:
+4. **fail2ban** — bans IPs that hammer the login. Two required steps:
+   expose Caddy's access log on the host, then install the shipped jail.
 
-       sudo apt install fail2ban            # Debian/Ubuntu
+   a. Point Caddy's log at a host directory. In `immich/docker-compose.yml`,
+      **replace** the caddy service's existing log volume line —
 
-   Expose Caddy's log to the host by bind-mounting the `caddy-logs` volume,
-   or copy the shipped config which reads `/var/log/immich-caddy/access.log`:
+          - caddy-logs:/var/log/caddy
 
-       sudo mkdir -p /var/log/immich-caddy
-       # bind Caddy's log here, e.g. add to the caddy service:
-       #   - /var/log/immich-caddy:/var/log/caddy
-       sudo cp immich/fail2ban/filter.d/immich-caddy.conf /etc/fail2ban/filter.d/
-       sudo cp immich/fail2ban/jail.d/immich.conf         /etc/fail2ban/jail.d/
-       sudo systemctl restart fail2ban
-       sudo fail2ban-client status immich-caddy
+      — with a host bind mount:
+
+          - /var/log/immich-caddy:/var/log/caddy
+
+      Then remove the now-unused `caddy-logs` entry from the bottom
+      `volumes:` list, create the directory, and recreate Caddy:
+
+          sudo mkdir -p /var/log/immich-caddy
+          docker compose up -d caddy
+
+   b. Install fail2ban and the shipped filter + jail (the jail reads
+      `/var/log/immich-caddy/access.log`):
+
+          sudo apt install fail2ban            # Debian/Ubuntu
+          sudo cp immich/fail2ban/filter.d/immich-caddy.conf /etc/fail2ban/filter.d/
+          sudo cp immich/fail2ban/jail.d/immich.conf         /etc/fail2ban/jail.d/
+          sudo systemctl restart fail2ban
+          sudo fail2ban-client status immich-caddy
 
 ## 5. Verify the hardening works
 
